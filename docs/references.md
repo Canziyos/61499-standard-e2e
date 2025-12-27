@@ -9,12 +9,19 @@ Mälardalen University.
 **Thesis proposal and description (ID 246).**  
 🔗 https://www.idt.mdh.se/exjobb/thesisdetails/246  
 
+---
+
 Blessing, L. T. M., Chakrabarti, A.  
 **DRM, a Design Research Methodology.** Springer, 2009.  
 🔗 https://doi.org/10.1007/978-1-84882-587-1  
 
 ---
 
+Mubeen, S., Mäki-Turja, J., Sjödin, M., Carlson, J.
+**Analyzable Modeling of Legacy Communication in Component-Based Distributed Embedded Systems.**, 2011.
+🔗 https://doi.org/10.1109/SEAA.2011.43
+
+---
 Zhong, R. Y., Xu, X., Klotz, E., Newman, S. T.  
 **Intelligent Manufacturing in the Context of Industry 4.0: A Review.**  
 Engineering, 2017.  
