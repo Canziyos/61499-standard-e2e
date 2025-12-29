@@ -1,6 +1,6 @@
 ## Project context
 
-This repository supports the master's thesis:
+This repo supports the, my, master's thesis:
 
 **Extraction of Timing Models to Enable End-to-End Timing Analysis of IEC 61499-Based Software Systems**
 
