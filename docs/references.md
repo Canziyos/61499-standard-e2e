@@ -112,17 +112,6 @@ INDIN, 2009.
 
 ---
 
-Eclipse Foundation.  
-**Eclipse 4diac Project.**  
-🔗 https://www.eclipse.org/4diac/  
-
-Christensen, J. H., Strasser, T. I., Valentini, A., Vyatkin, V., Zoitl, A.  
-**The IEC 61499 Function Block Standard: Overview of the Second Edition.**  
-ISA Automation Week, 2012.  
-
-Christensen, J. H., Strasser, T. I., Valentini, A., Vyatkin, V., Zoitl, A.  
-**The IEC 61499 Function Block Standard: Software Tools and Runtime Platforms.**  
-ISA Automation Week, 2012.  
 
 ---
 
@@ -161,3 +150,5 @@ Insaurralde, C. C.
 **Fully-Deterministic Execution of IEC 61499 Models for Distributed Avionics Applications.**  
 Aerospace, 2018.  
 🔗 https://doi.org/10.3390/aerospace5010015  
+
+
