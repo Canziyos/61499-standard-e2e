@@ -1,4 +1,4 @@
-# References (Working Index)
+# References
 
 Overview of references reviewed during the thesis work.  
 (The authoritative citation source for the thesis remains the BibTeX file used in Overleaf).
