@@ -1,7 +1,5 @@
 ## Project context
 
-This repo supports the, my, master's thesis:
-
 **Extraction of Timing Models to Enable End-to-End Timing Analysis of IEC 61499-Based Software Systems**
 
 The official description oin: 🔗[MDU](https://www.idt.mdh.se/exjobb/thesisdetails/246)
