@@ -1,6 +1,6 @@
 Newer directional initiative: UniversalAutomation.org (UAO)
 
-UAO positions its shared runtime as IEC 61499–based**, with the explicit goal of **portable applications across heterogeneous hardware**.
+UAO positions its shared runtime as IEC 61499–based, with the explicit goal of **portable applications across heterogeneous hardware**.
   Source: [https://universalautomation.org/uao-technology/](https://universalautomation.org/uao-technology/)
 * This directly mirrors the **Section V “open systems + network effects” vision**, but implemented as an **industry consortium**, not a standard part.
 
