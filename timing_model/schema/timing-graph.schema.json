@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E2ETM v0",
+  "type": "object",
+  "required": ["meta", "nodes", "edges", "assumptions"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["version", "time_unit"],
+      "properties": {
+        "version": { "type": "string" },
+        "time_unit": { "type": "string", "enum": ["ns"] }
+      }
+    },
+    "assumptions": {
+      "type": "object",
+      "properties": {
+        "resource_queue": { "type": "string", "enum": ["FIFO", "PRIO", "UNKNOWN"] },
+        "preemption": { "type": "string", "enum": ["YES", "NO", "UNKNOWN"] },
+        "comm_model": { "type": "string", "enum": ["BOUNDED_DELAY", "UNKNOWN"] }
+      },
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "type": "string", "enum": ["EXEC", "COMM"] },
+
+          "device_id": { "type": "string" },
+          "resource_id": { "type": "string" },
+
+          "timing": {
+            "type": "object",
+            "properties": {
+              "bcet_ns": { "type": "integer", "minimum": 0 },
+              "wcet_ns": { "type": "integer", "minimum": 0 },
+              "delay_min_ns": { "type": "integer", "minimum": 0 },
+              "delay_max_ns": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": false
+          },
+
+          "origin": {
+            "type": "object",
+            "properties": {
+              "artefact_ids": { "type": "array", "items": { "type": "string" } },
+              "note": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "src", "dst", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "src": { "type": "string" },
+          "dst": { "type": "string" },
+          "kind": { "type": "string", "enum": ["PRECEDES"] },
+
+          "origin_semantics": { "type": "string", "enum": ["event", "data", "comm", "unknown"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

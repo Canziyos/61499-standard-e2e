@@ -1,422 +1,147 @@
-### Analyzable Modeling of Legacy Communication in Component-Based Distributed Embedded Systems
+## Common ground across the whole set of the papers below.
 
-🔗 [https://doi.org/10.1109/SEAA.2011.43](https://doi.org/10.1109/SEAA.2011.43)
-
-* End-to-end timing analysis in distributed hard real-time systems requires explicit communication modeling; legacy protocols (e.g., CAN) introduce timing effects that cannot be abstracted away without losing analyzability.
-
-* Communication must be treated as a first-class execution concern, not hidden behind middleware.
-
-* Analyzability is achieved through disciplined modeling and mechanical extraction of timing semantics.
-
-* No existing approach simultaneously provides explicit execution semantics, legacy communication support, and tight end-to-end timing analyzability.
-
-* Communication is modeled using:
-  * an explicit **network specification**, and
-  * explicit **send (OSWC)** and **receive (ISWC)** execution steps.
-
-* These steps make communication visible to timing analysis.
-
-* End-to-end timing paths are mechanically extracted from trigger relations.
-
-* Standard response-time analysis is then applied to compute worst-case end-to-end delays.
----
-
-### **Thoughts:**
-
-* Analogue to **extracting timing semantics from event-driven IEC 61499 function block networks**.
-* Motivates why **IEC 61499 requires an extraction-based timing approach**, rather than timing annotations alone.
-
-> End-to-end timing analysis requires explicit extraction of execution and communication semantics from component-based architectures.
-
-> Rubus needed explicit communication modeling to enable end-to-end timing analysis. IEC 61499 has the same structural problem.
+* **Architecture/component models are not directly analyzable.** Timing analysis needs a **separate analysis model** produced by **systematic extraction/translation**, not vibes.
+* End-to-end timing is a **chain property** (tasks + messages + causality), not a single-task property.
+* A usable model must separate domains: **node execution**, **network communication**, plus **explicit linking** (causality across domains).
+* **Extraction ≠ analysis.** Extraction builds the analyzable model; analysis consumes it unchanged.
+* Any missing info must become **explicit assumptions** (hidden assumptions = fake certainty).
 
 ---
 
-## Support for Holistic Response-Time Analysis in an Industrial Tool Suite
+## 1) SEAA 2011 — *Analyzable Modeling of Legacy Communication…*
 
-🔗 [https://doi.org/10.1109/ECBS.2012.38](https://doi.org/10.1109/ECBS.2012.38)
+* Legacy communication (e.g., CAN) cannot be “abstracted away” without losing analyzability → **communication must be explicit** and treated as execution.
 
-* holistic End-to-end timing analysis (HRTA) is only possible if timing models are explicitly extracted; component models do not provide all required parameters unambiguously.
+* Makes communication visible using:
 
-* HRTA assumes explicit availability of WCETs, offsets, priorities, triggering semantics, message properties, and precedence relations — these must be **derived**, not assumed.
+  * an explicit **Network Specification**, and
+  * explicit **send/receive execution steps** (OSWC/ISWC-style idea: comm becomes schedulable work).
+* **Mechanical path extraction** from **trigger relations**, then **standard response-time analysis** to compute worst-case end-to-end delays.
 
-* Distributed transactions (cause–effect chains) are not explicit and must be **constructed** from model structure and communication mappings.
+* Same structural pain: timing is scattered + comm semantics aren’t “in the wires” → you need **extraction of execution + communication semantics**, not just annotations.
 
-* Timing inheritance is iterative: response times propagate as jitter across task → message → task chains.
-
-* Design and deployment decisions affect analyzability; careless allocation can introduce direct cycles that make analysis non-terminating.
-
-* Multi-network systems require staged analysis with timing results propagated across gateways as jitter.
-
-* The **ACC case study** demonstrates feasibility on a realistic system and validates the extraction-based approach.
-
-#### **Thoughts:**
-
-* Direct analogue to **extracting timing models from IEC 61499 architectures**.
-* Confirms that **end-to-end timing paths must be reconstructed**, not inferred from connections alone.
-* Shows that **event-driven semantics require inference of transmission/activation types**.
-* Demonstrates that **deployment rules and architectural constraints are necessary** for analyzability.
-
-> End-to-end timing analysis requires explicit extraction of execution and tracing semantics from the design model.
 ---
 
-## Extracting End-to-End Timing Models from Component-Based Distributed Embedded Systems” (2014)
+## 2) ECBS 2012 — *Support for Holistic Response-Time Analysis in an Industrial Tool Suite*
 
-* Rubus component model RCM properties enabling extraction:
+* HRTA only works if analysis parameters are **derived explicitly** (WCET, offsets, priorities, triggering, precedence, message properties). Design models rarely give these unambiguously.
 
-  * explicit separation of **control flow (triggers)** and **data flow (signals)**,
-  * run-to-completion SWC semantics,
-  * tasks and schedules are *derived* by code generation.
+* **It contributes**
 
-* Problem source: distributed timing behavior **emerges during code generation and deployment**, not from architecture diagrams.
+* **Distributed transactions / cause–effect chains must be constructed** from structure + deployment/mapping.
+* **Iterative jitter propagation** along task → message → task.
+* **Analyzability pitfalls**:
 
-* end-to-end timing is an **engineering reconstruction problem**, not a modeling-language problem.
+  * bad deployment introduces **direct cycles** → possible non-termination,
+  * **multi-network** requires staged analysis and gateway jitter propagation.
+* Validated via a realistic **ACC case study**.
 
-* Distributed transactions consist of:
 
-  * **trigger chains**, **data chains**, or **mixed chains**.
-* Different chain types require **different timing constraints** → chain type must be identified explicitly.
+* Strong support for “extraction-first,” plus a concrete warning: **deployment rules/constraints matter for analysis to even terminate**.
 
-* End-to-end timing paths are **implicit and fragmented** in distributed systems.
+---
 
-* Core difficulty arises at **node boundaries**:
+## 3) (Rubus/RCM) 2014 — *Extracting End-to-End Timing Models from Component-Based Distributed Embedded Systems*
 
-  * triggers become signals,
-  * signals become messages,
-  * messages may be buffered, bundled, or delayed.
-* Network communication **breaks direct triggering semantics**.
+* End-to-end timing behavior **emerges during codegen + deployment** → it’s an **engineering reconstruction problem**, not “read it from the diagram.”
 
-* Key missing semantics:
+**It contributes**
 
-  * who triggers the destination SWC,
-  * when it is triggered after message reception.
+* Two-part analyzable model:
 
-* Required (but missing) information:
+  * **System Timing Model** = node timing + network timing (local behavior)
+  * **System Linking Model** = explicit task↔message↔task chain reconstruction
+* Pinpoints the core distributed break: **node boundaries** (trigger→signal→message, buffering/bundling, etc.) destroy naïve triggering semantics.
+* Tool-supported pattern:
 
-  * sender/receiver node IDs,
-  * sender/receiver task IDs,
-  * signal–message mapping.
-* Existing RCM components are **insufficient for linking distributed chains**.
+  * explicit send/receive boundary entities (OSWC/ISWC concept),
+  * a central **Network Specification** containing signal↔message mapping + linking pointers,
+  * pipeline via an intermediate representation (e.g., ICCM) → auto-extraction → analysis → feedback.
 
-* Needed concepts:
+* The backbone: **timing + linking** as separate artefacts, because node+network timing alone can’t give end-to-end chains.
 
-  * explicit **linking objects**,
-  * **entry and exit points** between node and network models.
-* end-to-end timing chains cannot be inferred from architectural connections alone; they must be explicitly reconstructed. (again)
+---
 
-* End-to-End Timing Model
+## 4) *Communications-oriented development…* (your “linking-focused” take)
 
-* Purpose: represent **all timing properties, requirements, and dependencies** needed for end-to-end timing analysis in distributed embedded systems.
 
-* The model is split into **two complementary parts**:
+* **Linking is the real hard problem**: without unambiguous causality links, timing attributes are useless.
+* **Trigger dependency is extracted semantics** (Dependent vs Independent) used to:
 
-  * **System Timing Model**
-  * **System Linking Model**
+  * classify chains (trigger/data/mixed),
+  * prevent metric misuse before analysis.
+* **Inter-domain crossings need explicit timing entities** (entry/exit points) → same abstract role as OSWC/ISWC, but portable to other ecosystems.
+* **Message attributes inherit from sender execution unless explicitly specified** → avoids contradictory “annotate everything everywhere.”
+* **Incomplete architectures / external traffic** must still be analyzable (stand-alone message modeling).
 
-* System Timing Model (what has timing behavior)
+* Perfect mapping to IEC 61499: device/resource boundaries + SIFBs are natural **timing boundaries**; you’ll need explicit **entry/exit semantics** to keep delays bounded and visible.
 
-* Composed of:
+---
 
-  * **Node Timing Models**
-  * **Network Timing Models**
-* Captures *local* timing behavior before chains are linked end-to-end.
+## 5) Paper A — *Translating End-to-End Timing Requirements to Timing Analysis Models…*
 
-* Node Timing Model
-* Based on **transaction models with offsets**.
-* A node contains multiple **transactions**, each activated by:
+* **Trigger chains vs data chains** is a hard semantic split that determines **which metric is meaningful**:
 
-  * periodic events (period (T_i)), or
-  * sporadic events (minimum inter-arrival time (T_i)).
-* Transactions are **independently phased**.
-* Each transaction consists of **tasks** ( \tau_{ij} ).
-* Each task is characterized by:
+  * Trigger chain → holistic response time
+  * Data chain → latency/data age/first reaction
+* For data chains, **“latency” has multiple semantics** (FIFO/FILO/LIFO/LILO).
+  → End-to-end latency is **not one number** unless chain semantics are fixed.
+* Mixed chains + merges are normal; chain type may only be resolvable after tracing the **full distributed chain**.
+* Introduces **trigger map** (dependent/independent between neighbors) as an extraction artefact; ambiguous cases treated conservatively.
 
-  * priority (P_{ij}),
-  * WCET (C_{ij}),
-  * offset (O_{ij}),
-  * release jitter (J_{ij}),
-  * optional deadline (D_{ij}),
-  * blocking time (B_{ij}),
-  * worst-case response time (R_{ij}).
+* Extraction must include **chain semantics**, not only entities. Otherwise you risk “correct analysis of the wrong requirement.”
 
-* No restrictions on relationships between period, offset, deadline, or jitter.
+---
 
-* Network Timing Model
+## 6) Paper B — *Towards Extraction of Interoperable Timing Models…*
 
-* Captures timing behavior of **inter-node communication**.
-* Supports CAN and CAN-based protocols.
-* Tasks communicate by **queueing messages** for network transmission.
-* Each message is defined by:
+* Shifts focus to **interoperability across abstraction levels/tools** (design → implementation).
+* Argues for **early timing analysis**: implementation-level extraction is too late to fix.
+* Makes design-level pain explicit:
 
-  * unique ID,
-  * priority,
-  * transmission type (periodic / sporadic / mixed),
-  * transmission time,
-  * inherited release jitter,
-  * payload size,
-  * period (T_m) and/or minimum update time (MUT_m),
-  * blocking time,
-  * worst-case response time (R_m).
+  * missing priorities/jitter/transmission types,
+  * unclear triggering & control-vs-data,
+  * hidden linking across nodes,
+  * duplicated/ambiguous timing annotations.
+* Offers two viable strategies:
 
-* System Linking Model (what connects timing behavior)
+  1. extend design languages/tools, or
+  2. define a **restricted, well-defined execution interpretation** (practical route).
 
-* Required because **transactions span multiple nodes**.
-* Represents **how tasks and messages are connected** into distributed chains.
-* A task chain:
 
-  * is an ordered sequence of tasks,
-  * has a common ancestor,
-  * may propagate **triggers, data, or both**.
+* Direct justification for your IEC 61499 stance: you’re allowed (and basically forced) to define a **restricted interpretation** + explicit assumptions to make extraction unambiguous.
 
-* Neighboring tasks in a chain may:
-
-  * reside on different nodes,
-  * communicate via network messages.
-* So, End-to-end timing analysis requires:
+---
 
-  * explicit **linking information** between tasks and messages,
-  * not just local timing parameters.
-* Linking extraction is **significantly more complex** than in single-node systems.
+## 7) 2018 — *Component-Based Multi-Criticality Vehicular Embedded Systems*
 
-* **Timing parameters alone are insufficient**.
-* End-to-end timing analysis requires:
+**What it adds (beyond 2014)**
 
-  * a **system timing model** (nodes + networks), and
-  * a **system linking model** that explicitly reconstructs distributed chains.
+* **Multi-criticality** at application/partition level (not task-level mixed-criticality): node → **partitions** → transactions → tasks; partitions provide isolation and host one criticality level (ASIL A–D).
+* Expands the model into **three parts**:
 
+  1. timing model
+  2. linking model
+  3. **timing requirements model**
+* Requirements are **chain-level** with a small, sharp set: **Age, Reaction, Output sync, Input sync** (AUTOSAR/TADL2-aligned).
+* Richer network model coverage (CAN + switched Ethernet families; multi-hop links; active vs passive networks).
 
-* Purpose: **resolve linking and extraction problems** identified earlier and show a **tool-supported solution** in Rubus-ICE.
-* Approach demonstrated on a **two-node distributed RCM application**.
+**Extraction philosophy**
 
-* Introduce special-purpose SWCs:
+* Two sources of info: **explicit** + **implicit inferred**, with missing info handled via **explicit assumptions**.
+* Many message parameters are **derived** (payload/bandwidth → tx time, CAN ID → priority, sender RT bounds → jitter, sender triggering → periodic/sporadic/mixed).
 
-  * **OSWC (Output Software Circuit)**: one per outgoing network message.
-  * **ISWC (Input Software Circuit)**: one per incoming network message.
-* Each OSWC/ISWC is translated into a **runtime task**.
-* Introduce **Network Specification (NS)**:
+* Reinforces the “three artefacts” story: **timing + linking + requirements**, plus a clean pattern for being honest about missing info.
 
-  * one per network protocol,
-  * models communication semantics explicitly.
-* NS contains **signal–message mapping**:
+---
 
-  * signal packing into messages,
-  * encoding/decoding rules,
-  * message composition.
-* OSWC acts as **exit point** from node model to network.
-* ISWC acts as **entry point** from network to node model.
-* Trigger ports of OSWCs/ISWCs are referenced in NS → enables **bounded end-to-end delays**.
+* IEC 61499 needs extraction of **(1) timing entities**, **(2) linking (causality)**, **(3) chain semantics**, and **(4) chain-level requirements**, with **explicit assumptions** and possibly a **restricted execution interpretation** for analyzability.
 
-* Each task is annotated with a **trigger dependency attribute**:
+---
 
-  * `independent` → triggered by clock or external event,
-  * `dependent` → triggered by predecessor task.
-* Precedence constraints added for dependent tasks.
-* Chain classification:
+## Glossary (RT / DA / CEC)
 
-  * all dependent (except first) → **trigger chain**,
-  * more than one independent → **data chain**.
+* **Reaction time (RT):** initiation → effect occurrence (responsiveness, not freshness).
+* **Data age (DA):** production → consumption of the *same data instance* (freshness, not speed).
+* **Cause–effect chain (CEC):** causally connected computations+communications from cause to effect; invalid if causality/data instance traceability is ambiguous (merges, forks without semantics, “temporal folklore,” etc.).
 
-* Linking information stored **centrally in NS**.
-* NS holds **pointers** to:
-
-  * trigger in-ports of OSWCs,
-  * trigger out-ports of ISWCs.
-* Pointer arrays link **neighboring components across nodes**.
-* Enables reconstruction of distributed trigger chains.
-* Supports protocol-specific behavior (e.g., CAN):
-
-  * send queues,
-  * interrupts vs polling,
-  * message reception and triggering.
-* ISWC:
-
-  * decodes message,
-  * extracts signals,
-  * places data on ports,
-  * triggers next SWC using NS linking.
-* OSWC/ISWC together form **explicit node boundaries**.
-
-* System modeled in **Rubus Designer**.
-* Compiled into **ICCM (Intermediate Compiled Component Model)**.
-* ICCM contains:
-
-  * component structure,
-  * timing parameters,
-  * linking information.
-* End-to-end timing model is **automatically extracted** from ICCM.
-* Extracted models:
-
-  * node timing model,
-  * network timing model,
-  * system linking model.
-* Rubus Analysis Framework computes:
-
-  * task response times,
-  * message response times,
-  * end-to-end response times and delays,
-  * network utilization.
-* Results fed back into Rubus-ICE.
-
-## Component-Based Multi-Criticality Vehicular Embedded Systems (2018)
-
-* Distinguishes **multi-criticality** from classic mixed-criticality:
-
-  * mixed-criticality (Vestal): criticality assigned to **tasks**,
-  * **multi-criticality (this paper)**: criticality assigned to **applications**, not individual tasks.
-* Inspired by:
-  * **ISO 26262** (automotive functional safety),
-  * **DO-178C** (aerospace).
-
-* Compatible with component models using **pipe-and-filter communication**.
-* Timing requirements model aligned with:
-
-  * **TIMMO2USE / TADL2** timing constraints.
-* Extends prior work by supporting **multi-criticality**, not just single-criticality systems.
-
-* End-to-end timing model contains all information required by timing analysis engines.
-* Consists of **three parts**:
-
-  1. **Timing model**
-  2. **Linking model**
-  3. **Timing requirements model**
-* Explicitly separates:
-
-  * software architecture,
-  * timing model,
-  * timing analysis engines.
-
-* This paper **generalizes the 2014 extraction work** by adding:
-
-  * multi-criticality awareness,
-  * richer timing requirements,
-  * alignment with safety standards,
-  * broader network protocol support.
-
-* System (S) consists of:
-
-  * **nodes (ECUs)** and **networks**.
-* End-to-end timing model consists of **three parts**:
-
-  1. **Timing model**
-  2. **Linking model**
-  3. **Timing requirements model**
-
-* Based on **transactional task model with offsets**.
-* Nodes are divided into **partitions**:
-
-  * partitions provide **time and space isolation**,
-  * each partition hosts software of **one criticality level**.
-* Criticality levels follow **ISO 26262 (ASIL A–D)**.
-* Node → partitions → transactions → tasks hierarchy.
-
-* Activated by **independent events** (periodic or sporadic).
-* Period (T) or minimum inter-arrival time defined.
-* Tasks inside a transaction may have **offsets**, defining release dependencies.
-
-* Each task characterized by:
-
-  * WCET,
-  * period,
-  * offset,
-  * priority,
-  * release jitter,
-  * blocking time,
-  * response time,
-  * deadline.
-* No restrictions between period, deadline, offset, or jitter.
-
-* Supports **multiple vehicular real-time protocols**:
-
-  * CAN, CANopen, HCAN, AUTOSAR COMM,
-  * switched Ethernet (AVB, HaRTES, TSN).
-* Network model includes:
-
-  * bandwidth,
-  * switches and links (for multi-hop networks),
-  * traffic shaping parameters (slopes, time windows),
-  * set of messages.
-
-* messages Can be **periodic, sporadic, or mixed**.
-* Message attributes include:
-
-  * priority,
-  * transmission time,
-  * payload size,
-  * period / minimum update time,
-  * offset,
-  * jitter,
-  * blocking time,
-  * response time.
-* Message properties derived from:
-
-  * sender task behavior,
-  * network protocol characteristics.
-
-* Systems are modeled as **chains of tasks and messages**.
-* Chains:
-
-  * have one initiator and one terminator,
-  * may be local or distributed.
-* Tasks may receive:
-
-  * trigger,
-  * data,
-  * or both.
-* Messages:
-
-  * may be task-triggered (passive networks),
-  * or network-triggered (active networks).
-* Multi-hop networks introduce multiple links per message.
-* Linking model captures:
-
-  * trigger flow,
-  * data flow,
-  * mapping of tasks ↔ messages ↔ links.
-* Linking information is **essential for end-to-end analysis**.
-
-* Timing requirements specified **on chains**, not individual tasks/messages.
-* Each requirement has:
-
-  * type,
-  * MIN value,
-  * MAX value.
-* Only **four chain-level constraints** considered:
-
-  * **Age**
-  * **Reaction**
-  * **Output Synchronization**
-  * **Input Synchronization**
-* Constraints aligned with **AUTOSAR / TADL2** semantics.
-
-* Extraction Philosophy:
-
-* Two types of extracted information:
-
-  1. **Explicitly specified** by user.
-  2. **Implicit**, inferred from architecture.
-* Missing information handled via **explicit assumptions**.
-
-* Some network/message parameters are user-defined.
-* Others are derived:
-
-  * transmission time from payload + bandwidth,
-  * message priority from ID (CAN) or user attribute,
-  * blocking time from lower-priority messages,
-  * message jitter from sender task response-time bounds.
-* Message type (periodic/sporadic/mixed) derived from sender triggering.
-
-* Each distributed chain captured as an **ordered reference set**:
-
-  * references to tasks, messages, ports.
-* Tasks assigned **trigger dependency attribute**:
-
-  * `Independent` (clock/event-triggered),
-  * `Dependent` (triggered by predecessor).
-* Precedence constraints added for dependent triggering.
-* Multi-hop networks:
-
-  * extract set of traversed links per message.
-
-* Constraints specified using **start/end objects** on chains.
-* MAX extracted from end object.
-* MIN defaults to zero if unspecified.
