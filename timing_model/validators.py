@@ -1,1 +1,0 @@
-# Validate IR against schema.
